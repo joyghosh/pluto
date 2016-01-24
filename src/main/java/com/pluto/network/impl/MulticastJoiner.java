@@ -1,18 +1,24 @@
 package com.pluto.network.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Observable;
+import java.util.Observer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pluto.data.MulticastMessage;
 import com.pluto.network.Joiner;
 
-public class MulticastJoiner implements Joiner {
+public class MulticastJoiner implements Joiner, Observer{
 
 	private static final Logger logger = LoggerFactory.getLogger(MulticastJoiner.class);
-	private static final String ip = "127.0.0.1";
+	private static final String ip = "228.5.6.7";
 	private static final int port = 4001;
 	
 	private InetAddress group;
@@ -21,9 +27,11 @@ public class MulticastJoiner implements Joiner {
 	public MulticastJoiner() {
 		
 		try {	
-			socket = new MulticastSocket(port);
-			group = InetAddress.getByName(ip);
-		} catch (IOException e) {
+			this.socket = new MulticastSocket(port);
+			this.group = InetAddress.getByName(ip);
+//			join();
+//			new Thread(new MulticastListener(getSocket())).start();
+		}catch (IOException e) {
 			logger.error(e.getMessage());
 		}
 	}
@@ -32,7 +40,16 @@ public class MulticastJoiner implements Joiner {
 	public void join() {
 		
 		try {
-			socket.joinGroup(group);
+			this.socket.joinGroup(group);
+			MulticastMessage msg = new MulticastMessage();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ObjectOutputStream oos = new ObjectOutputStream(baos);
+			oos.writeObject(msg);
+			oos.flush();
+			byte[] buffer = baos.toByteArray();
+			DatagramPacket packet = new DatagramPacket(buffer, buffer.length,
+											InetAddress.getByName(ip), port);
+			this.socket.send(packet);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
@@ -42,8 +59,8 @@ public class MulticastJoiner implements Joiner {
 	public void leave() {
 		
 		try {
-			socket.leaveGroup(group);
-			socket.close();
+			this.socket.leaveGroup(group);
+			this.socket.close();
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
@@ -51,9 +68,15 @@ public class MulticastJoiner implements Joiner {
 	
 	/**
 	 * 
-	 * @return multicast socket object.
+	 * @return multi-cast socket object.
 	 */
 	public MulticastSocket getSocket(){
 		return this.socket;
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		// TODO Auto-generated method stub
+		
 	}
 }
