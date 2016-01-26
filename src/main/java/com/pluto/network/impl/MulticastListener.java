@@ -6,21 +6,22 @@ import java.net.MulticastSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
+import java.util.Observer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pluto.datastructure.Members;
 import com.pluto.network.Listener;
 
-public class MulticastListener extends Observable implements Listener{
+public class MulticastListener implements Listener{
 
 	private static final Logger logger = LoggerFactory.getLogger(MulticastListener.class); 
 	private MulticastSocket socket;
-	private List<String> members;
+	private Members<String> members;
 	
 	public MulticastListener(MulticastSocket socket) {
 		this.socket = socket;
-		this.members = new ArrayList<String>();
 	}
 	
 	@Override
@@ -34,17 +35,11 @@ public class MulticastListener extends Observable implements Listener{
 			DatagramPacket recv = new DatagramPacket(buffer, buffer.length);
 			try {
 				this.socket.receive(recv);
-				this.members.add(recv.getAddress().getHostAddress()+":"+recv.getPort());
-				logger.info(this.members.toString());
+//				this.members.add(recv.getAddress().getHostAddress()+":"+recv.getPort());
+//				logger.info(this.members.toString());
 			} catch (IOException e) {
 				logger.error(e.getMessage());
 			}
 		}
 	}
-
-//	@Override
-//	public void run() {
-//		listen();
-//	}
-
 }

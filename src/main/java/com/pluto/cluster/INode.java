@@ -1,6 +1,8 @@
 package com.pluto.cluster;
 
-public interface INode {
+import java.util.Observer;
+
+public interface INode extends Observer{
 	
 	void init();
 }
