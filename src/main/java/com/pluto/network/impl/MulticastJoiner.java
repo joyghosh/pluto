@@ -40,6 +40,7 @@ public class MulticastJoiner implements Joiner, Observer{
 	public void join() {
 		
 		try {
+			
 			this.socket.joinGroup(group);
 			MulticastMessage msg = new MulticastMessage();
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -1,16 +1,15 @@
 package com.pluto.network.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pluto.data.Message;
 import com.pluto.datastructure.Members;
 import com.pluto.network.Listener;
 
@@ -18,10 +17,11 @@ public class MulticastListener implements Listener{
 
 	private static final Logger logger = LoggerFactory.getLogger(MulticastListener.class); 
 	private MulticastSocket socket;
-	private Members<String> members;
+	private Members<InetAddress> members;
 	
-	public MulticastListener(MulticastSocket socket) {
+	public MulticastListener(MulticastSocket socket, Members<InetAddress> members) {
 		this.socket = socket;
+		this.members = members;
 	}
 	
 	@Override
@@ -30,14 +30,27 @@ public class MulticastListener implements Listener{
 		logger.info("Listening on a multicast port.");
 		
 		byte[] buffer = new byte[4096];
-		
+		DatagramPacket recv = new DatagramPacket(buffer, buffer.length);
 		while(true){
-			DatagramPacket recv = new DatagramPacket(buffer, buffer.length);
+			
 			try {
 				this.socket.receive(recv);
-//				this.members.add(recv.getAddress().getHostAddress()+":"+recv.getPort());
-//				logger.info(this.members.toString());
-			} catch (IOException e) {
+				ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
+				ObjectInputStream ois = new ObjectInputStream(bais);
+				Message<?> m = (Message<?>)ois.readObject();
+				
+				switch (m.getType()) {
+					case Message.MULTICAST:	
+											members.add(recv.getAddress());
+											break;
+					case Message.TCP:		
+											break;
+					case Message.CUSTOM:    
+											break;
+					default:				logger.warn("message type not supported.");
+											break;
+				}
+			} catch (IOException | ClassNotFoundException e) {
 				logger.error(e.getMessage());
 			}
 		}

@@ -25,6 +25,12 @@ public final class Members<T> extends Observable{
 		return members.get(index);
 	}
 	
+	public void add(T element){
+		members.add(element);
+		setChanged();
+		notifyObservers();
+	}
+	
 	public T set(int index, T element){
 		T oldValue = members.set(index, element);
 		setChanged();
@@ -43,5 +49,16 @@ public final class Members<T> extends Observable{
 	
 	public List<T> getMembers(){
 		return members;
+	}
+	
+	@Override
+	public String toString(){
+		
+		String members = "";
+		for(T member:getMembers()){
+			members.concat(member.toString()+" ");
+		}
+		
+		return "Members: [\n"+members+"\n]";
 	}
 }
